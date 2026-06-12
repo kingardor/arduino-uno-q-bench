@@ -9,6 +9,7 @@ from arduino.app_bricks.web_ui import WebUI
 from arduino.app_utils import App, Logger
 
 import ollama_client
+import detect_client
 from animator import Animator
 
 logger = Logger("uno-q-vlm-chat")
@@ -57,8 +58,28 @@ def boot(payload=None):
     return {"ok": True}
 
 
+def detect(payload: dict):
+    """Run YOLOE-26n object detection on an uploaded image (via the NCNN sidecar)."""
+    import base64
+    img = payload.get("image", "")
+    if isinstance(img, str) and img.startswith("data:") and "," in img:
+        img = img.split(",", 1)[1]
+    if not img:
+        return {"ok": False, "error": "no image"}
+    anim.set_state("detecting")
+    try:
+        res = detect_client.detect(base64.b64decode(img))
+        anim.flash_done()
+        return {"ok": True, "boxes": res.get("boxes", []), "n": res.get("n", 0), "ms": res.get("ms")}
+    except Exception as e:
+        anim.flash_error()
+        logger.warning(f"detect failed: {e}")
+        return {"ok": False, "error": str(e)}
+
+
 ui.expose_api('GET', '/config', get_config)
 ui.expose_api('POST', '/boot', boot)
 ui.expose_api('POST', '/chat', chat)
+ui.expose_api('POST', '/detect', detect)
 
 App.run()

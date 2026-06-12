@@ -4,7 +4,9 @@ A funky, on-device conversational **vision** agent for the Arduino UNO Q. Runs a
 a native Arduino App Lab app (containerized, port **7000**), talks to a local
 ollama VLM, and mirrors its state on the physical **8×13 LED matrix** + RGB LED.
 
-![ui](./screenshot.png)
+<p align="center">
+  <img src="./screenshot.png" alt="UNO Q VLM Chat" width="340">
+</p>
 
 ## Access
 - Open **`http://<board-ip>:7000`** from any device on the same Wi-Fi.
@@ -14,16 +16,20 @@ ollama VLM, and mirrors its state on the physical **8×13 LED matrix** + RGB LED
 - Type a message, attach an image (📎 / drag-drop / paste), pick a model, send.
 - Images are auto-downscaled to ~512 px in the browser (the speed sweet spot).
 
-## Models (switcher in the UI)
-- **SmolVLM2-256M ⚡** (default) — fast (~20 s) image captioning; weak at multi-turn chat.
-- **qwen3.5:0.8b 💭** — slower (~25–60 s) but a real conversationalist + vision.
+## Two tabs
+- **Chat** — talk + vision. Model: **qwen3.5:0.8b** (multimodal) via ollama.
+  Attach an image (📎 / drag-drop / paste) and ask about it.
+- **Detect** — open-world object detection with **YOLOE-26n** (NCNN FP16 @ 416 px,
+  ~180 ms on the A53). Upload an image; boxes render on a canvas overlay. Served by
+  the [`detect/`](../detect) sidecar container on `:7801`, reached via `HOST_IP`.
 
 ## State animations (browser + board)
 | State | Browser hero canvas | 8×13 matrix | RGB LED |
 |---|---|---|---|
-| boot | dot-grid sweep → orb | diagonal wipe | teal fade |
-| idle | breathing orb + particles | heartbeat pulse | green breathe |
-| processing | scan + rotating arc | KITT scan bar | blue pulse |
+| boot | dot-grid sweep → orb | random twinkle | teal fade |
+| idle | breathing orb + particles | static glyph | green breathe |
+| processing | scan + rotating arc | explosive centre-out pulse | blue pulse |
+| detecting | radar sweep | rotating radar sweep | cyan pulse |
 | done | green ripple + check | checkmark | green flash |
 
 ## Architecture

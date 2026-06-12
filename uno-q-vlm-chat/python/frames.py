@@ -68,6 +68,23 @@ def explode(p):
     return buf
 
 
+def scan(i):
+    """Rotating radar sweep with a fading trail (object-detection 'scanning')."""
+    buf = blank()
+    theta = (i * 0.45) % (2 * math.pi)
+    for y in range(H):
+        for x in range(W):
+            d = _dist(x, y)
+            if d > 6.6:
+                continue
+            ang = math.atan2(y - CY, (x - CX) / _XS) % (2 * math.pi)
+            da = (theta - ang) % (2 * math.pi)        # angle behind the sweep
+            if da < 1.1:
+                _set(buf, y, x, 7 * (1 - da / 1.1) * min(1.0, d / 2.0))
+    _set(buf, 3, 6, 4); _set(buf, 4, 6, 4)            # bright hub
+    return buf
+
+
 def busy(level=1.0):
     """'Thinking' glyph; level (0..1) scales brightness for a gentle pulse."""
     buf = blank()

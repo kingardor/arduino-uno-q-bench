@@ -26,8 +26,8 @@ async function loadConfig() {
 }
 
 /* ---------------- viz state machine ---------------- */
-const STATUS = { boot:'booting', idle:'idle', processing:'thinking', done:'done', error:'error' };
-const LABEL  = { boot:'waking up…', idle:'ready', processing:'thinking…', done:'done', error:'error' };
+const STATUS = { boot:'booting', idle:'idle', processing:'thinking', done:'done', error:'error', detecting:'scanning' };
+const LABEL  = { boot:'waking up…', idle:'ready', processing:'thinking…', done:'done', error:'error', detecting:'scanning…' };
 let viz = 'boot', bootStart = performance.now(), doneAt = 0;
 function setViz(s) {
   viz = s;
@@ -48,7 +48,7 @@ function resize() {
 }
 window.addEventListener('resize', resize);
 
-const COL = { boot:'#ffb23e', idle:'#2ad1d1', processing:'#45e0e0', done:'#16c784', error:'#ff5a5a' };
+const COL = { boot:'#ffb23e', idle:'#2ad1d1', processing:'#45e0e0', done:'#16c784', error:'#ff5a5a', detecting:'#45e0e0' };
 const NP = 46;
 let particles = [];
 for (let i = 0; i < NP; i++) {
@@ -84,6 +84,7 @@ function frame(now) {
   else if (viz === 'processing') { speed = 3.4; coreR = (11+4*Math.sin(t*7))*s; }
   else if (viz === 'done') { speed = 1.4; coreR = 16*s; reach = 1.5; }
   else if (viz === 'error') { speed = .6; coreR = (13+3*Math.sin(t*20))*s; }
+  else if (viz === 'detecting') { speed = 2.5; coreR = (12+3*Math.sin(t*6))*s; }
 
   // soft core glow
   const g = ctx.createRadialGradient(cx, cy, 0, cx, cy, coreR*4.2);
@@ -106,6 +107,11 @@ function frame(now) {
   if (viz === 'processing') {
     ctx.strokeStyle = color; ctx.lineWidth = 2.5*s; ctx.globalAlpha = .9;
     const a0 = t*4.5; ctx.beginPath(); ctx.arc(cx, cy, coreR*2.5, a0, a0+1.8); ctx.stroke();
+    ctx.globalAlpha = 1;
+  }
+  if (viz === 'detecting') {
+    const a = t*3.2; ctx.strokeStyle = color; ctx.lineWidth = 2.5*s; ctx.globalAlpha = .9;
+    ctx.beginPath(); ctx.moveTo(cx, cy); ctx.lineTo(cx + Math.cos(a)*62*s, cy + Math.sin(a)*62*s*0.6); ctx.stroke();
     ctx.globalAlpha = 1;
   }
   if (viz === 'done') {
@@ -204,11 +210,13 @@ attachRemove.onclick = clearAttachment;
 }));
 window.addEventListener('dragleave', e => { if (!e.relatedTarget) document.body.classList.remove('dragging'); });
 window.addEventListener('drop', e => {
+  if (document.getElementById('app').dataset.tab !== 'chat') return;
   e.preventDefault(); document.body.classList.remove('dragging');
   const f = [...(e.dataTransfer.files || [])].find(f => f.type.startsWith('image/'));
   if (f) readImg(f);
 });
 window.addEventListener('paste', e => {
+  if (document.getElementById('app').dataset.tab !== 'chat') return;
   const it = [...(e.clipboardData.items || [])].find(i => i.type.startsWith('image/'));
   if (it) readImg(it.getAsFile());
 });
@@ -227,5 +235,106 @@ fetch('/boot', { method: 'POST' }).catch(() => {});  // replay the physical matr
 requestAnimationFrame(frame);
 setTimeout(() => {
   if (viz === 'boot') setViz('idle');
-  addMsg('bot', '▚ UNO Q online. Drop in an image and ask away — or just chat. ⚡');
+  addMsg('bot', "Hey — I'm UNO Q. Drop in an image, or just ask me something.");
 }, 3000);
+
+/* ---------------- tabs ---------------- */
+const appEl = document.getElementById('app');
+document.querySelectorAll('#tabs .tab').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('#tabs .tab').forEach(b => b.classList.toggle('active', b === btn));
+    const tab = btn.dataset.tab; appEl.dataset.tab = tab;
+    document.getElementById('chat-view').classList.toggle('active', tab === 'chat');
+    document.getElementById('detect-view').classList.toggle('active', tab === 'detect');
+    if (tab === 'detect' && detImage) detDraw();
+  });
+});
+
+/* ---------------- detect ---------------- */
+const detCanvas = document.getElementById('det-canvas'), detCtx = detCanvas.getContext('2d');
+const detFile = document.getElementById('det-file'), detUpload = document.getElementById('det-upload');
+const detRun = document.getElementById('det-run'), detMeta = document.getElementById('det-meta');
+const detResults = document.getElementById('det-results'), detEmpty = document.getElementById('det-empty');
+let detImage = null, detBoxes = [];
+const DET_COLORS = ['#00e5ff','#ff2bd6','#22ff9c','#ffb23e','#b14bff','#45e0e0','#ff6fe4','#ffd23e'];
+const detClassesEl = document.getElementById('det-classes');
+if (detClassesEl) detClassesEl.textContent = 'person · car · dog · cat · bottle · cup · phone · laptop';
+
+function detLoad(file) {
+  if (!file) return;
+  const r = new FileReader();
+  r.onload = () => {
+    const img = new Image();
+    img.onload = () => {
+      detImage = { dataURL: r.result, img, w: img.width, h: img.height }; detBoxes = [];
+      detEmpty.classList.add('hidden'); detMeta.textContent = ''; detResults.innerHTML = ''; detDraw();
+    };
+    img.src = r.result;
+  };
+  r.readAsDataURL(file);
+}
+function detDraw() {
+  if (!detImage) return;
+  const wrap = document.getElementById('det-stage').getBoundingClientRect();
+  const scale = Math.min(wrap.width / detImage.w, wrap.height / detImage.h) || 1;
+  const cw = Math.max(1, Math.round(detImage.w * scale)), ch = Math.max(1, Math.round(detImage.h * scale));
+  const dpr = Math.min(2, window.devicePixelRatio || 1);
+  detCanvas.width = cw * dpr; detCanvas.height = ch * dpr;
+  detCanvas.style.width = cw + 'px'; detCanvas.style.height = ch + 'px';
+  detCtx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  detCtx.clearRect(0, 0, cw, ch);
+  detCtx.drawImage(detImage.img, 0, 0, cw, ch);
+  const s = cw / detImage.w;
+  detBoxes.forEach((b, i) => {
+    const c = DET_COLORS[i % DET_COLORS.length];
+    const x = b.x1 * s, y = b.y1 * s, w = (b.x2 - b.x1) * s, h = (b.y2 - b.y1) * s;
+    detCtx.lineWidth = 2; detCtx.strokeStyle = c; detCtx.shadowColor = c; detCtx.shadowBlur = 8;
+    detCtx.strokeRect(x, y, w, h); detCtx.shadowBlur = 0;
+    const label = `${b.label} ${Math.round(b.conf * 100)}%`;
+    detCtx.font = '600 11px ui-monospace, monospace';
+    const tw = detCtx.measureText(label).width + 8;
+    detCtx.fillStyle = c; detCtx.fillRect(x, Math.max(0, y - 15), tw, 15);
+    detCtx.fillStyle = '#04070a'; detCtx.fillText(label, x + 4, Math.max(11, y - 4));
+  });
+}
+window.addEventListener('resize', () => { if (detImage && appEl.dataset.tab === 'detect') detDraw(); });
+detUpload.onclick = () => detFile.click();
+detFile.onchange = () => detLoad(detFile.files[0]);
+
+async function runDetect() {
+  if (!detImage || detRun.disabled) return;
+  detRun.disabled = true; detMeta.textContent = 'scanning…'; setViz('detecting');
+  try {
+    const r = await fetch('/detect', { method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ image: detImage.dataURL }) });
+    const d = await r.json();
+    if (d.ok) {
+      detBoxes = (d.boxes || []).filter(b => b.conf >= 0.45);
+      detDraw();
+      detMeta.textContent = `${detBoxes.length} object${detBoxes.length === 1 ? '' : 's'} · ${d.ms} ms`;
+      detResults.innerHTML = '';
+      detBoxes.forEach((b, i) => {
+        const c = DET_COLORS[i % DET_COLORS.length];
+        const el = document.createElement('span'); el.className = 'det-chip';
+        el.style.borderColor = c; el.style.color = c;
+        el.textContent = `${b.label} ${Math.round(b.conf * 100)}%`;
+        detResults.appendChild(el);
+      });
+      if (!detBoxes.length)
+        detResults.innerHTML = '<span class="det-chip muted">no objects ≥ 45%</span>';
+      setViz('done'); setTimeout(() => { if (viz === 'done') setViz('idle'); }, 1200);
+    } else {
+      detMeta.textContent = '⚠ ' + (d.error || 'error'); setViz('error'); setTimeout(() => { if (viz === 'error') setViz('idle'); }, 1500);
+    }
+  } catch (e) {
+    detMeta.textContent = '⚠ ' + e.message; setViz('error'); setTimeout(() => { if (viz === 'error') setViz('idle'); }, 1500);
+  }
+  detRun.disabled = false;
+}
+detRun.onclick = runDetect;
+window.addEventListener('drop', e => {
+  if (appEl.dataset.tab !== 'detect') return;
+  e.preventDefault(); document.body.classList.remove('dragging');
+  const f = [...(e.dataTransfer.files || [])].find(f => f.type.startsWith('image/'));
+  if (f) detLoad(f);
+});

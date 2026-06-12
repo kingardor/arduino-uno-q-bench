@@ -4,18 +4,16 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover" />
-  <meta name="theme-color" content="#0a0e10" />
+  <meta name="theme-color" content="#04070a" />
   <title>UNO Q · VLM Chat</title>
   <link rel="stylesheet" href="style.css" />
 </head>
 <body>
-  <div id="app">
+  <div id="app" data-tab="chat">
     <header id="bar">
       <div class="brand">
         <span class="dot-mark" aria-hidden="true"><i></i><i></i><i></i><i></i></span>
-        <div class="title">
-          <strong>UNO&nbsp;Q</strong><span class="sub">vlm&nbsp;chat</span>
-        </div>
+        <div class="title"><strong>UNO&nbsp;Q</strong><span class="sub">vlm&nbsp;chat</span></div>
       </div>
       <div class="controls">
         <span id="status" class="pill" data-state="boot">booting</span>
@@ -28,26 +26,52 @@
       <span id="stage-label">waking up…</span>
     </section>
 
-    <main id="log" aria-live="polite"></main>
+    <nav id="tabs" role="tablist">
+      <button class="tab active" data-tab="chat" role="tab">Chat</button>
+      <button class="tab" data-tab="detect" role="tab">Detect</button>
+    </nav>
 
-    <form id="composer" autocomplete="off">
-      <div id="attach-chip" class="chip hidden">
-        <img id="attach-thumb" alt="attachment" />
-        <button type="button" id="attach-remove" title="remove">×</button>
-      </div>
-      <div class="row">
-        <button type="button" id="attach-btn" class="icon-btn" title="Attach image" aria-label="Attach image">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m21.44 11.05-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"/></svg>
-        </button>
-        <input type="file" id="file" accept="image/*" hidden />
-        <textarea id="text" rows="1" placeholder="&gt; transmit to uno·q…"></textarea>
-        <button type="submit" id="send" class="icon-btn send" title="Send" aria-label="Send">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 2 11 13"/><path d="M22 2 15 22l-4-9-9-4Z"/></svg>
-        </button>
-      </div>
-    </form>
+    <main id="views">
+      <!-- CHAT -->
+      <section id="chat-view" class="view active">
+        <div id="log" aria-live="polite"></div>
+        <form id="composer" autocomplete="off">
+          <div id="attach-chip" class="chip hidden">
+            <img id="attach-thumb" alt="attachment" />
+            <button type="button" id="attach-remove" title="remove">×</button>
+          </div>
+          <div class="row">
+            <button type="button" id="attach-btn" class="icon-btn" title="Attach image" aria-label="Attach image">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m21.44 11.05-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"/></svg>
+            </button>
+            <input type="file" id="file" accept="image/*" hidden />
+            <textarea id="text" rows="1" placeholder="Message UNO Q…"></textarea>
+            <button type="submit" id="send" class="icon-btn send" title="Send" aria-label="Send">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 2 11 13"/><path d="M22 2 15 22l-4-9-9-4Z"/></svg>
+            </button>
+          </div>
+        </form>
+      </section>
 
-    <div id="drop-hint">drop image to attach</div>
+      <!-- DETECT -->
+      <section id="detect-view" class="view">
+        <div id="det-stage">
+          <canvas id="det-canvas"></canvas>
+          <div id="det-empty">Drop an image to spot objects<br><small id="det-classes"></small></div>
+        </div>
+        <div id="det-results"></div>
+        <div id="det-bar">
+          <button type="button" id="det-upload" class="icon-btn" title="Upload image" aria-label="Upload image">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><path d="M17 8l-5-5-5 5"/><path d="M12 3v12"/></svg>
+          </button>
+          <input type="file" id="det-file" accept="image/*" hidden />
+          <button type="button" id="det-run" class="det-run">Detect</button>
+          <span id="det-meta"></span>
+        </div>
+      </section>
+    </main>
+
+    <div id="drop-hint">drop image</div>
   </div>
   <script src="app.js"></script>
 </body>

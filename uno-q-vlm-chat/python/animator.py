@@ -134,6 +134,15 @@ class Animator:
                     self._last_mtx = now
                 self._drawn = None
 
+            elif state == "detecting":
+                # object detection: cyan radar sweep on the matrix + cyan LED
+                k = 0.4 + 0.6 * abs(math.sin(t * 4))
+                _rgb(0, int(120 * k), int(150 * k))
+                if now - self._last_mtx >= 1.0 / _MTX_HZ:
+                    self._draw(F.scan(int(t * 8)))
+                    self._last_mtx = now
+                self._drawn = None
+
             else:
                 # idle: static blue glyph (drawn once) + gentle violet LED breathe
                 if state != self._drawn:

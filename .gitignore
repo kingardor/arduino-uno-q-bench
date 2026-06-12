@@ -24,3 +24,10 @@ node_modules/
 # Local scratch
 /tmp/
 *.log
+
+# detection model artifacts (regenerate with detect/export-yoloe-ncnn.py)
+*.onnx
+*.pt
+*.ts
+model.ncnn.*
+ncnn_*/

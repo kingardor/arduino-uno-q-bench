@@ -9,8 +9,21 @@
   <meta name="theme-color" content="#dde8f2" media="(prefers-color-scheme: light)" />
   <title>UNO Q · VLM Chat</title>
   <link rel="stylesheet" href="style.css" />
+  <!-- Apply saved theme before first paint to avoid flash -->
+  <script>
+    (function () {
+      var t = localStorage.getItem('uno-theme');
+      if (t) document.documentElement.setAttribute('data-theme', t);
+    })();
+  </script>
 </head>
 <body>
+  <!-- Canvas lives outside #app so it sits behind the entire UI in the root stacking context -->
+  <section id="stage-wrap">
+    <canvas id="stage"></canvas>
+    <span id="stage-label">waking up…</span>
+  </section>
+
   <div id="app" data-tab="chat">
     <header id="bar">
       <div class="brand">
@@ -18,14 +31,15 @@
         <div class="title"><strong>UNO&nbsp;Q</strong><span class="sub">vlm&nbsp;chat</span></div>
       </div>
       <div class="controls">
+        <button id="theme-toggle" class="icon-btn theme-btn" title="Toggle theme" aria-label="Toggle light/dark mode">
+          <!-- Sun: visible in dark mode (click to go light) -->
+          <svg class="icon-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v2m0 16v2M4.93 4.93l1.41 1.41m11.32 11.32 1.41 1.41M2 12h2m16 0h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"/></svg>
+          <!-- Moon: visible in light mode (click to go dark) -->
+          <svg class="icon-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 12.79A9 9 0 1 1 11.21 3a7 7 0 0 0 9.79 9.79z"/></svg>
+        </button>
         <span id="status" class="pill" data-state="boot">booting</span>
       </div>
     </header>
-
-    <section id="stage-wrap">
-      <canvas id="stage"></canvas>
-      <span id="stage-label">waking up…</span>
-    </section>
 
     <nav id="tabs" role="tablist">
       <button class="tab active" data-tab="chat" role="tab">Chat</button>
@@ -74,6 +88,36 @@
 
     <div id="drop-hint">drop image</div>
   </div>
+
   <script src="app.js"></script>
+  <script>
+    // Watch #log for first message — triggers centered→bottom settle animation
+    (function () {
+      var log = document.getElementById('log');
+      var chatView = document.getElementById('chat-view');
+      function check() {
+        if (log.children.length > 0 && !chatView.classList.contains('has-messages')) {
+          chatView.classList.add('has-messages');
+        }
+      }
+      new MutationObserver(check).observe(log, { childList: true });
+      check();
+    })();
+  </script>
+  <script>
+    // Theme toggle — runs after DOM is ready
+    (function () {
+      function currentTheme() {
+        var saved = localStorage.getItem('uno-theme');
+        if (saved) return saved;
+        return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+      }
+      document.getElementById('theme-toggle').addEventListener('click', function () {
+        var next = currentTheme() === 'dark' ? 'light' : 'dark';
+        document.documentElement.setAttribute('data-theme', next);
+        localStorage.setItem('uno-theme', next);
+      });
+    })();
+  </script>
 </body>
 </html>

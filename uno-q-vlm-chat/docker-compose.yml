@@ -1,0 +1,73 @@
+# SPDX-License-Identifier: MPL-2.0
+# UNO Q VLM Chat — service stack
+#
+# Usage (via `adb -s 4154450840 shell`, from /home/arduino/ArduinoApps/uno-q-vlm-chat):
+#   docker compose up -d          start all services
+#   docker compose down           stop all services
+#   docker compose restart        restart all services
+#   docker compose logs -f        tail all logs
+#   docker compose logs -f main   tail main app only
+
+name: uno-q-vlm-chat
+
+services:
+  main:
+    image: ghcr.io/arduino/app-bricks/python-apps-base:0.10.1
+    container_name: uno-q-vlm-chat-main-1
+    user: "1000:1000"
+    working_dir: /app
+    entrypoint: ["/run.sh"]
+    restart: unless-stopped
+    environment:
+      APP_HOME: /home/arduino/ArduinoApps/uno-q-vlm-chat
+      # HOST_IP is intentionally set to the stable Docker bridge gateway.
+      # ollama_client.py probes bridge IPs first, but a correct HOST_IP avoids
+      # the 2-second timeout caused by the original stale 192.168.x.x value.
+      HOST_IP: "172.17.0.1"
+      HOME: /home/app
+      USER: arduino
+    ports:
+      - "7000:7000"
+    volumes:
+      - /home/arduino/ArduinoApps/uno-q-vlm-chat:/app
+      - /dev:/dev
+      - /run/udev:/run/udev:ro
+      - /var/run/arduino-router.sock:/var/run/arduino-router.sock
+      - /dev/leds/builtin/led1_r:/dev/leds/builtin/led1_r
+      - /dev/leds/builtin/led1_g:/dev/leds/builtin/led1_g
+      - /dev/leds/builtin/led1_b:/dev/leds/builtin/led1_b
+      - /dev/leds/builtin/led2_r:/dev/leds/builtin/led2_r
+      - /dev/leds/builtin/led2_g:/dev/leds/builtin/led2_g
+      - /dev/leds/builtin/led2_b:/dev/leds/builtin/led2_b
+    extra_hosts:
+      - "msgpack-rpc-router:host-gateway"
+    group_add:
+      - "44"   # audio
+      - "29"   # audio (secondary)
+      - "991"  # board-specific
+      - "20"   # dialout
+      - "1001" # arduino
+    shm_size: "64m"
+    logging:
+      driver: json-file
+      options:
+        max-size: "5m"
+        max-file: "2"
+
+  detect:
+    image: yoloe-detect
+    container_name: yoloe-detect
+    command: python /detect_server.py
+    restart: unless-stopped
+    # Kept on the host bridge network so the main container can reach it at
+    # host-gateway:7801 (same as before compose was introduced).
+    network_mode: bridge
+    ports:
+      - "7801:7801"
+    volumes:
+      - /home/arduino/ArduinoApps/uno-q-vlm-chat/ncnn_416:/models/ncnn_416
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "2"

@@ -16,15 +16,16 @@ _resolved = None
 
 
 def _candidates():
-    cands = []
-    host_ip = os.environ.get("HOST_IP")
-    if host_ip:
-        cands.append(f"http://{host_ip}:{_PORT}")
-    cands += [
+    # Bridge IPs first — stable across network changes. HOST_IP last (stale if board moves networks).
+    cands = [
         "http://172.17.0.1:%d" % _PORT,        # default docker bridge -> host
+        "http://172.18.0.1:%d" % _PORT,        # secondary bridge
         "http://host.docker.internal:%d" % _PORT,
         "http://127.0.0.1:%d" % _PORT,         # if ever run outside a container
     ]
+    host_ip = os.environ.get("HOST_IP")
+    if host_ip:
+        cands.append(f"http://{host_ip}:{_PORT}")
     # de-dupe preserving order
     seen, out = set(), []
     for c in cands:
@@ -34,19 +35,24 @@ def _candidates():
     return out
 
 
+def _probe(url):
+    try:
+        urllib.request.urlopen(url + "/api/version", timeout=2).read()
+        return True
+    except Exception:
+        return False
+
+
 def base_url():
     global _resolved
-    if _resolved:
+    if _resolved and _probe(_resolved):
         return _resolved
+    _resolved = None
     for c in _candidates():
-        try:
-            urllib.request.urlopen(c + "/api/version", timeout=2).read()
+        if _probe(c):
             _resolved = c
             return c
-        except Exception:
-            continue
-    _resolved = _candidates()[0]
-    return _resolved
+    raise RuntimeError("ollama unreachable — tried: %s" % _candidates())
 
 
 def _strip_data_url(img):

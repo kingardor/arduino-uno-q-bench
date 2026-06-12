@@ -7,10 +7,16 @@ charismatic on-device **conversational vision-chat webapp** with physical
 The UNO Q is a dual-brain board: a Qualcomm Dragonwing **QRB2210** (quad-core
 Cortex-A53 + Adreno 702, Debian Linux) alongside an **STM32U585** MCU. We run a
 quantized VLM on the A53 CPU via **ollama**, and an **Arduino App Lab** app that
-serves a neon web UI and mirrors its state on the **8×13 blue LED matrix**.
+serves a dark ambient web UI and mirrors its state on the **8×13 blue LED matrix**.
 
 <p align="center">
-  <img src="uno-q-vlm-chat/screenshot.png" alt="UNO Q VLM Chat" width="340">
+  <img src="uno-q-vlm-chat/docs/app-screenshot.png" alt="UNO Q VLM Chat — dark UI mid-conversation, VLM responding to an image" width="720">
+</p>
+
+<p align="center">
+  <img src="uno-q-vlm-chat/docs/hardware-photo.jpg" alt="Arduino UNO Q board held up showing the active LED matrix" width="420">
+  <br>
+  <sub>The board running live — LED matrix lit, USB connected.</sub>
 </p>
 
 > **Models are not stored in git.** They're pulled on-device from the ollama
@@ -61,7 +67,8 @@ On the same Wi-Fi as the board you can instead open `http://<board-ip>:7000`.
 - **Detect tab**: open-world object detection with **YOLOE-26n** exported to
   **NCNN FP16 @ 416 px** (~180 ms / 5.5 fps on the A53). Runs as a sidecar
   container reached over `HOST_IP`; boxes are drawn on a canvas overlay.
-- **Neon cyberpunk-HUD UI** with a live "orb" hero animation (state machine:
+- **Dark ambient UI** — purple/magenta OKLCH palette, animated particle orb
+  background, Gemini-style composer, light/dark mode toggle (state machine:
   boot → idle → processing → done).
 - **Physical LED-matrix animations** (8×13, blue): random twinkle on boot/refresh,
   explosive centre-out bursts while thinking, a radar sweep while detecting, a

@@ -1,0 +1,26 @@
+# Models are pulled on-device (see scripts/pull-models.sh) — never commit them
+*.gguf
+*.bin
+*.safetensors
+*.tar.zst
+*.zst
+.ollama/
+models/
+
+# Build / runtime caches
+__pycache__/
+*.pyc
+.cache/
+.venv/
+node_modules/
+
+# Editor / OS / session
+.claude/
+.DS_Store
+*.swp
+.idea/
+.vscode/
+
+# Local scratch
+/tmp/
+*.log

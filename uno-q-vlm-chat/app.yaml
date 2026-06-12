@@ -1,0 +1,6 @@
+name: UNO Q VLM Chat
+description: On-device conversational vision agent. Chat with a local VLM, upload images, and watch the LED matrix react.
+ports: []
+bricks:
+- arduino:web_ui: {}
+icon: 🤖

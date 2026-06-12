@@ -55,13 +55,16 @@ def _strip_data_url(img):
     return img
 
 
+_SYSTEM = {"role": "system", "content": "You are UNO Q, a helpful assistant. Always reply in English only."}
+
+
 def chat(model_tag, messages, num_predict=256, timeout=240):
     """Call ollama /api/chat with multi-turn messages + optional images.
 
     messages: [{role, content, image?(base64 or data-url)}]
     Returns {"reply": str, "timing": float_seconds}.
     """
-    om = []
+    om = [_SYSTEM]
     for m in messages:
         msg = {"role": m.get("role", "user"), "content": m.get("content", "")}
         img = m.get("image")

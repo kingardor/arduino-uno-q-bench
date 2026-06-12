@@ -21,9 +21,9 @@ MODEL_DIR = "/models/ncnn_416"
 
 net = ncnn.Net()
 net.opt.num_threads = 4
-net.opt.use_fp16_packed = True
-net.opt.use_fp16_storage = True
-net.opt.use_fp16_arithmetic = True
+net.opt.use_fp16_packed = False
+net.opt.use_fp16_storage = False
+net.opt.use_fp16_arithmetic = False
 net.load_param(f"{MODEL_DIR}/model.ncnn.param")
 net.load_model(f"{MODEL_DIR}/model.ncnn.bin")
 
@@ -57,7 +57,7 @@ def _nms(boxes, scores, iou=0.45, topk=100):
     return keep
 
 
-def detect(jpeg, conf_th=0.30, iou=0.45):
+def detect(jpeg, conf_th=0.40, iou=0.45):
     img = Image.open(io.BytesIO(jpeg)).convert("RGB")
     W, H = img.size
     lb, r, dx, dy = _letterbox(img)

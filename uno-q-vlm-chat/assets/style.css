@@ -15,10 +15,10 @@
 
   /* Surface ramp */
   --bg:        oklch(0.09  0.000   0);   /* near-black body */
-  --surface:   oklch(0.14  0.010 278);   /* panel bg */
-  --surface2:  oklch(0.19  0.015 278);   /* raised / hover */
-  --border:    oklch(0.26  0.018 278);   /* hairline separators */
-  --border-sub:oklch(0.20  0.012 278);   /* subtler inner borders */
+  --surface:   oklch(0.17  0.020 278);   /* panel bg */
+  --surface2:  oklch(0.23  0.028 278);   /* raised / hover */
+  --border:    oklch(0.32  0.028 278);   /* hairline separators */
+  --border-sub:oklch(0.25  0.018 278);   /* subtler inner borders */
 
   /* Text */
   --ink:       oklch(0.93  0.008 280);   /* body text ≥7:1 on bg */
@@ -28,7 +28,7 @@
   /* Brand */
   --primary:   oklch(0.62  0.200 278);   /* violet — CTA, active, focus */
   --primary-hi:oklch(0.68  0.195 278);   /* hover lift */
-  --primary-lo:oklch(0.18  0.040 278);   /* tinted surface (user bubble bg) */
+  --primary-lo:oklch(0.21  0.080 278);   /* tinted surface (user bubble bg) */
   --on-primary:oklch(0.97  0.000   0);   /* text on filled primary */
   --accent:    oklch(0.74  0.145 195);   /* teal — secondary / detecting */
 
@@ -58,10 +58,10 @@
     color-scheme: light;
 
     --bg:        oklch(0.97  0.000   0);
-    --surface:   oklch(0.93  0.010 278);
-    --surface2:  oklch(0.89  0.016 278);
-    --border:    oklch(0.80  0.020 278);
-    --border-sub:oklch(0.86  0.014 278);
+    --surface:   oklch(0.91  0.014 278);
+    --surface2:  oklch(0.86  0.020 278);
+    --border:    oklch(0.76  0.024 278);
+    --border-sub:oklch(0.82  0.016 278);
 
     --ink:       oklch(0.16  0.015 278);
     --muted:     oklch(0.45  0.010 278);
@@ -69,7 +69,7 @@
 
     --primary:   oklch(0.48  0.220 278);
     --primary-hi:oklch(0.43  0.215 278);
-    --primary-lo:oklch(0.91  0.030 278);
+    --primary-lo:oklch(0.88  0.055 278);
     --on-primary:oklch(0.97  0.000   0);
     --accent:    oklch(0.50  0.150 195);
 
@@ -102,13 +102,13 @@ body {
   min-height: 100dvh;
 }
 
-/* Very subtle depth — two faint violet radial nodes. Not a hero, not glow-for-glow. */
+/* Ambient depth — visible radial nodes that read on near-black */
 body::before {
   content: "";
   position: fixed; inset: 0; z-index: 0; pointer-events: none;
   background:
-    radial-gradient(ellipse 60% 40% at 85% 0%,   oklch(0.18 0.06 278 / 0.5), transparent 60%),
-    radial-gradient(ellipse 50% 35% at 10% 100%,  oklch(0.18 0.05 195 / 0.4), transparent 55%);
+    radial-gradient(ellipse 80% 65% at 100% -5%,  oklch(0.38 0.15 278 / 0.55), transparent 65%),
+    radial-gradient(ellipse 65% 55% at  -5% 108%, oklch(0.34 0.12 195 / 0.48), transparent 60%);
 }
 
 /* ─── App shell ──────────────────────────────────────────────────────────── */
@@ -139,19 +139,19 @@ body::before {
 }
 .dot-mark i {
   width: 6px; height: 6px; border-radius: 2px;
-  background: var(--primary); opacity: 0.7;
+  background: var(--primary);
   animation: blink 2.8s ease-in-out infinite;
 }
-.dot-mark i:nth-child(2) { background: var(--accent);   animation-delay: 0.5s; opacity: 0.55; }
-.dot-mark i:nth-child(3) { animation-delay: 1.0s; opacity: 0.40; }
-.dot-mark i:nth-child(4) { background: var(--accent);   animation-delay: 1.5s; opacity: 0.30; }
+.dot-mark i:nth-child(2) { background: var(--accent);  animation-delay: 0.5s; }
+.dot-mark i:nth-child(3) { animation-delay: 1.0s; }
+.dot-mark i:nth-child(4) { background: var(--accent);  animation-delay: 1.5s; }
 
-@keyframes blink { 0%, 100% { opacity: 0.15 } 50% { opacity: 0.85 } }
+@keyframes blink { 0%, 100% { opacity: 0.10 } 50% { opacity: 1 } }
 
 .title { line-height: 1; }
 .title strong {
   font-family: 'Orbitron', ui-monospace, monospace;
-  font-weight: 700; font-size: 13px; letter-spacing: 3px;
+  font-weight: 700; font-size: 15px; letter-spacing: 3.5px;
   text-transform: uppercase; color: var(--ink);
 }
 .title .sub {
@@ -195,12 +195,14 @@ body::before {
   background: oklch(0.09 0.000 0);   /* constant across themes */
   border-bottom: 1px solid var(--border);
   overflow: hidden;
+  /* Teal ambient light pools at the bottom — makes the orb feel like it's illuminating */
+  box-shadow: inset 0 -50px 60px -20px oklch(0.74 0.145 195 / 0.14);
 }
 /* Corner brackets in accent — structural, not decorative */
 #stage-wrap::before, #stage-wrap::after {
-  content: ""; position: absolute; width: 18px; height: 18px;
+  content: ""; position: absolute; width: 22px; height: 22px;
   pointer-events: none; z-index: 5;
-  border: 1.5px solid var(--accent); opacity: 0.45;
+  border: 1.5px solid var(--accent); opacity: 0.75;
 }
 #stage-wrap::before { top: 10px; left: 10px; border-right: 0; border-bottom: 0; }
 #stage-wrap::after  { bottom: 10px; right: 10px; border-left: 0; border-top: 0; }
@@ -211,7 +213,7 @@ body::before {
   position: absolute; left: 0; right: 0; bottom: 10px;
   text-align: center; z-index: 6; pointer-events: none;
   font-size: 9px; letter-spacing: 4px; text-transform: uppercase;
-  color: oklch(0.74 0.145 195); opacity: 0.55;
+  color: oklch(0.74 0.145 195); opacity: 0.85;
 }
 #stage-label::after { content: "_"; animation: blink 1s steps(1) infinite; }
 
@@ -233,8 +235,9 @@ body::before {
 .tab:hover { color: var(--ink); background: var(--surface2); }
 .tab.active {
   color: var(--primary);
-  background: var(--primary-lo);
-  border-color: oklch(from var(--primary) l c h / 0.30);
+  background: oklch(0.62 0.200 278 / 0.18);
+  border-color: oklch(from var(--primary) l c h / 0.50);
+  text-shadow: 0 0 12px oklch(0.62 0.200 278 / 0.60);
 }
 
 /* ─── Views ──────────────────────────────────────────────────────────────── */
@@ -275,7 +278,7 @@ body::before {
 .msg.user {
   align-self: flex-end;
   background: var(--primary-lo);
-  border-color: oklch(from var(--primary) l c h / 0.22);
+  border-color: oklch(from var(--primary) l c h / 0.40);
   color: var(--ink);
   border-top-right-radius: 4px;
 }
@@ -361,7 +364,7 @@ body::before {
   color: var(--on-primary);
   transition: background 0.15s, transform 0.1s;
 }
-.icon-btn.send:hover  { background: var(--primary-hi); border-color: var(--primary-hi); }
+.icon-btn.send:hover  { background: var(--primary-hi); border-color: var(--primary-hi); box-shadow: 0 4px 20px oklch(0.62 0.200 278 / 0.50); }
 .icon-btn.send:active { transform: scale(0.92); }
 .icon-btn.send:disabled { opacity: 0.40; cursor: default; transform: none; }
 

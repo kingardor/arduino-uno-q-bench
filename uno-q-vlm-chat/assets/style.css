@@ -26,6 +26,7 @@
 
   --display: 'Orbitron', ui-monospace, "Roboto Mono", Menlo, monospace;
   --mono: ui-monospace, "Roboto Mono", SFMono-Regular, Menlo, Consolas, monospace;
+  --body: -apple-system, BlinkMacSystemFont, "Inter", "Segoe UI", Roboto, system-ui, sans-serif;
   --chamfer: polygon(10px 0, 100% 0, 100% calc(100% - 10px), calc(100% - 10px) 100%, 0 100%, 0 10px);
 }
 
@@ -141,13 +142,15 @@ select#model:hover { border-color: var(--cyan); box-shadow: 0 0 12px rgba(0,229,
 
 /* ---- chat log ---- */
 #log { flex: 1 1 auto; overflow-y: auto; padding: 18px 14px 10px; display: flex; flex-direction: column; gap: 16px; }
-.msg { position: relative; max-width: 86%; padding: 11px 14px; font-size: 14px; line-height: 1.55;
+.msg { position: relative; max-width: 86%; padding: 22px 15px 12px; font-family: var(--body);
+  font-size: 14.5px; line-height: 1.62; letter-spacing: .1px;
   white-space: pre-wrap; word-break: break-word; animation: rise .22s ease; clip-path: var(--chamfer);
   border: 1px solid var(--line); }
 @keyframes rise { from{ transform: translateY(8px); opacity:0 } to{ transform:none; opacity:1 } }
 .msg::before {
-  position: absolute; top: -8px; font-family: var(--display); font-size: 8px; letter-spacing: 2px;
-  text-transform: uppercase; padding: 1px 5px; background: var(--bg);
+  position: absolute; top: 7px; font-family: var(--display); font-size: 8px; letter-spacing: 2px;
+  text-transform: uppercase; padding: 1px 6px; opacity: .85;
+  background: rgba(0,0,0,.3);
 }
 .msg.user { align-self: flex-end; color: #e9feff;
   background: linear-gradient(135deg, rgba(0,229,255,.16), rgba(0,229,255,.05));

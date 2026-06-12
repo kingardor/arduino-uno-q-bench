@@ -1,10 +1,12 @@
 // SPDX-License-Identifier: MPL-2.0 — UNO Q VLM Chat
 'use strict';
 const $ = s => document.querySelector(s);
-const logEl = $('#log'), statusEl = $('#status'), modelSel = $('#model'),
+const logEl = $('#log'), statusEl = $('#status'),
       stageLabel = $('#stage-label'), textEl = $('#text'), sendBtn = $('#send'),
       fileEl = $('#file'), attachBtn = $('#attach-btn'), chip = $('#attach-chip'),
       thumb = $('#attach-thumb'), attachRemove = $('#attach-remove'), form = $('#composer');
+
+let activeModel = 'qwen';
 
 let messages = [];          // {role, content, image?}
 let pendingImage = null;    // data URL for next send
@@ -14,15 +16,8 @@ let busy = false;
 async function loadConfig() {
   try {
     const c = await (await fetch('/config')).json();
-    (c.models || []).forEach(m => {
-      const o = document.createElement('option');
-      o.value = m.id; o.textContent = m.label; modelSel.appendChild(o);
-    });
-    if (c.default) modelSel.value = c.default;
-  } catch (e) {
-    const o = document.createElement('option');
-    o.value = 'smolvlm'; o.textContent = 'SmolVLM2-256M ⚡'; modelSel.appendChild(o);
-  }
+    if (c.default) activeModel = c.default;
+  } catch (e) { /* keep default */ }
 }
 
 /* ---------------- viz state machine ---------------- */
@@ -158,14 +153,14 @@ async function send() {
   try {
     const r = await fetch('/chat', {
       method: 'POST', headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ messages: payload, model: modelSel.value })
+      body: JSON.stringify({ messages: payload, model: activeModel })
     });
     const d = await r.json(); think.remove();
     if (d.ok) {
       const el = addMsg('bot', d.reply || '(no reply)');
       if (d.timing != null) {
         const m = document.createElement('span'); m.className = 'meta';
-        m.textContent = `${modelSel.options[modelSel.selectedIndex].text} · ${d.timing}s`;
+        m.textContent = `${d.timing}s`;
         el.appendChild(m);
       }
       messages.push({ role: 'assistant', content: d.reply || '' });

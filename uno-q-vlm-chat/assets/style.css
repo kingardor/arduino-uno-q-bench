@@ -173,15 +173,6 @@ body {
 .pill[data-state="error"]      { color: var(--error);   border-color: rgba(248,113,113,.35); }
 @keyframes pill-pulse { 0%,100%{ opacity:.6 } 50%{ opacity:1 } }
 
-/* Model selector */
-select#model {
-  font-family: var(--body); font-size: 13px; color: var(--text); cursor: pointer;
-  background: var(--glass-bg); border: 1px solid var(--glass-border);
-  backdrop-filter: blur(10px); border-radius: var(--radius-sm);
-  padding: 7px 10px; outline: none; transition: .2s;
-}
-select#model:hover  { border-color: var(--accent); }
-select#model:focus  { border-color: var(--accent); box-shadow: 0 0 0 2px var(--accent-dim); }
 
 /* ─── Hero stage (canvas animation — untouched) ──────────────────────────── */
 #stage-wrap {
@@ -232,7 +223,6 @@ select#model:focus  { border-color: var(--accent); box-shadow: 0 0 0 2px var(--a
 #views { flex: 1 1 auto; min-height: 0; display: flex; }
 .view { display: none; flex: 1 1 auto; min-height: 0; flex-direction: column; }
 .view.active { display: flex; }
-#app[data-tab="detect"] #model { display: none; }
 
 /* ─── Chat log ───────────────────────────────────────────────────────────── */
 #log {
